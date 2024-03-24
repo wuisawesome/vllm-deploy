@@ -1,0 +1,18 @@
+syntax="proto3";
+
+message CompletionChunkChoice {
+  string text = 1;
+}
+
+message CompletionChunk {
+  string request_id = 1;
+  repeated CompletionChunkChoice choices = 2;
+}
+
+message Void {}
+
+service RouterService {
+
+rpc ReportRequestResult(stream CompletionChunk) returns (Void);
+
+}

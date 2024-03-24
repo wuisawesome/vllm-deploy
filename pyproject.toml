@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vllm-deploy"
+authors = [
+    {name = "Alex Wu", email = "alexanderwu@berkeley.edu"},
+]
+description = "Experiment with some vllm deployment"
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = []
+license = {text = "BSD-3-Clause"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "grpcio",
+    # My local protoc (from conda) is stuck at 3.18.1, so protobuf will yell at
+    # runtime if we don't bound this.
+    "protobuf<=3.20",
+]
+dynamic = ["version"]
+
+
+[tool.setuptools.packages.find]
+where = ["src/python"]
