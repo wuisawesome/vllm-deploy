@@ -34,3 +34,11 @@ class ReallyBadEngine:
                 )],
                 finished=False
             )
+
+
+class ReallyBadServingChat:
+
+    async def create_chat_completion(self):
+        to_return = ["Lorem", "ipsum", "amit", "dolor", "[DONE]"]
+        for token in to_return:
+            yield token

@@ -1,0 +1,57 @@
+syntax="proto3";
+
+
+/////////////////////////// ROUTER CONTROL PLANE /////////////////////////////////////////////
+
+// Upsert membership, this should cause membership changes in the worker set to be reflected to us.
+message RouterHeartbeat {
+  string router_id = 1;
+}
+
+// The messages we'll send to the router.
+message RouterServiceMessage {
+  oneof router_service_message {
+    RouterHeartbeat heartbeat = 1;
+  }
+}
+
+// A snapshot of the set.
+message SetReflection {
+  // Currently always "workers", reserved for future use.
+  string key = 1;
+  repeated string new_set = 2;
+}
+
+message StateServerMessage {
+  oneof state_server_message {
+    // The latest state of the set, sent on initial connection and each update to the worker set.
+    SetReflection set_reflection = 1;
+  }
+}
+
+service RouterService {
+  // The channel between the router and state server.
+  rpc RegisterRouter(stream RouterServiceMessage) returns (stream StateServerMessage);
+
+}
+
+//////////////////////////// WORKER CONTROL PLANE /////////////////////////////////////////
+
+// Upsert membership into the worker set.
+message WorkerHeartbeat {
+  string worker_id = 1;
+}
+
+// Messages we'll send to the worker.
+message WorkerServiceMessage {
+  oneof worker_service_message {
+    WorkerHeartbeat heartbeat= 1;
+  }
+}
+
+service WorkerService {
+  // When the stream ends, the worker should be automatically removed from the worker set.
+  rpc RegisterWorker(stream WorkerServiceMessage) returns (stream StateServerMessage);
+}
+
+

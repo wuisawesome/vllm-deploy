@@ -1,0 +1,61 @@
+syntax="proto3";
+
+////////////////////////////// UNRELIABLE DATAPLANE QUEUE ///////////////////////////////////
+
+// NOTE: This seems natural since ASGI itself seems unreliable (scopes don't
+// seem to have an error concept, the user would need to define their own
+// application level thing and `send()` it?
+
+// In our particular case, we'll rely on the router's http server to dish out
+// http errors in case of infra level errors.
+
+
+message SubscriptionRequest {
+  string mailbox_id = 1;
+}
+
+// Functionally a new `app(...)` is called.
+message NewAsgiScope {
+  // We invent an id so events can reference this scope.
+  string scope_id = 1;
+  // The id of the transport server for this scope.
+  string router_id = 2;
+  // json encoded with our bytes extension.
+  string payload = 3;
+}
+
+// Functionally `await receive()` returns something.
+message NewAsgiEvent {
+  // The scope this message was sent under.
+  string scope_id = 1;
+  // json encoded with our bytes extension.
+  string payload = 2;
+}
+
+// ✉️
+message MailMessage {
+  // Unused, reserved.
+  int64 message_id = 1;
+
+  // The mailbox the message is in.
+  string mailbox_id  = 2;
+
+  // The message. Note this isn't very efficient. Our naive mailbox is going to
+  // be constantly serializing/deserializing this entire payload. Perhaps we
+  // should consider making it bytes.
+  oneof payload {
+    NewAsgiScope new_scope = 4;
+    NewAsgiEvent new_event = 5;
+  }
+}
+
+message Void {}
+
+service MailboxService {
+
+  // Stream to submit lots of mail.
+  rpc SubmitMail(stream MailMessage) returns (Void);
+
+  // Stream of messages to a given mailbox.
+  rpc Subscribe(SubscriptionRequest) returns (stream MailMessage);
+}
