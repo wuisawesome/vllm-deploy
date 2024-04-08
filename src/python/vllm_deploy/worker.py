@@ -166,7 +166,7 @@ class AsgiRunner:
         receive = scope.received_events.get
 
         async def send(asgi_event):
-            logger.debug(f"Sending asgi event {asgi_event=}")
+            logger.info(f"Sending asgi event {asgi_event=}")
             await self.grpc_client.send_mail(
                 mailbox_pb2.MailMessage(
                     mailbox_id=scope.router_id,
@@ -186,22 +186,6 @@ class AsgiRunner:
 
     async def handle_new_event(self, event_proto : mailbox_pb2.NewAsgiEvent):
         await self.scope_manager.handle_new_event(event_proto)
-
-
-async def app(scope, receive, send):
-    request = await receive()
-    logger.info(f"WOOOOHOOOOO app received request {request=}")
-    await send({
-        "type": "http.response.start",
-        "status": 200,
-        "headers": [
-            [b"content-type", b"text/plain"],
-        ],
-    })
-    await send({
-        "type": "http.response.body",
-        "body": b"Hello, World!",
-    })
 
 
 async def main():
