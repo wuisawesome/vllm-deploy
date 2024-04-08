@@ -73,8 +73,6 @@ class ScopeManager:
             )
             while self.running:
                 mail = await mailbox_subscription_call.read()
-                logger.info(f"Got mail! {mail=}")
-
                 assert mail.HasField("new_event"), f"{mail=}"
 
                 proto_event = mail.new_event
@@ -87,7 +85,7 @@ class ScopeManager:
                     scope = self.scopes.get(scope_id)
 
                 if scope is not None:
-                    logger.info(f"Sending asgi event {asgi_event}")
+                    logger.info(f"Forward from worker {asgi_event}")
                     await scope.send_to_runner(asgi_event)
                 else:
                     logger.warning(f"Scope {scope_id} wasn't found! Something bad probably happened.")
@@ -108,8 +106,8 @@ class ScopeManager:
             self.scopes[scope.scope_id] = scope
 
 
-        logger.info(f"Forward scope TODO {worker=} {scope=}")
         async with self.mailbox_submission_lock:
+        logger.info(f"Forward scope {worker=} {scope=}")
             await self.mailbox_submission_stream.write(
                 mailbox_pb2.MailMessage(
                     mailbox_id=worker,
@@ -122,12 +120,13 @@ class ScopeManager:
             )
 
         await self.forward_to_worker(worker, scope, receive)
+        logger.info(f"Scope finished {scope=}")
 
     async def forward_to_worker(self, worker, scope, receive):
         while not scope.finished:
             event = await receive()
 
-            logger.debug(f"Received event {type(event)} {event=}")
+            logger.debug(f"Forward event to worker {worker=} {event=}")
 
             async with self.mailbox_submission_lock:
                 await self.mailbox_submission_stream.write(
