@@ -75,6 +75,8 @@ class ScopeManager:
                 mail = await mailbox_subscription_call.read()
                 assert mail.HasField("new_event"), f"{mail=}"
 
+                logger.debug(f"Got mail {mail=}")
+
                 proto_event = mail.new_event
 
                 scope_id = proto_event.scope_id
