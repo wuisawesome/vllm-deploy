@@ -107,7 +107,7 @@ class ScopeManager:
 
 
         async with self.mailbox_submission_lock:
-        logger.info(f"Forward scope {worker=} {scope=}")
+            logger.info(f"Forward scope {worker=} {scope=}")
             await self.mailbox_submission_stream.write(
                 mailbox_pb2.MailMessage(
                     mailbox_id=worker,
