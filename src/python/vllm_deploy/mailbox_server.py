@@ -6,7 +6,6 @@ import asyncio
 import grpc
 import logging
 
-init_logging()
 logger = logging.getLogger(__name__)
 
 class Servicer(MailboxServiceServicer):
